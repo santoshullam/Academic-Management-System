@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faculty Dashboard - AMS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <script>
+        // Role check
+        if (localStorage.getItem("userRole") !== "FACULTY") {
+            window.location.href = "index.html";
+        }
+    </script>
+</head>
+<body class="bg-light">
+
+    <!-- Top Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4 py-3 shadow">
+        <div class="container-fluid">
+            <span class="navbar-brand fw-bold fs-4" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">AMS Faculty</span>
+            <div class="d-flex align-items-center">
+                <span class="text-light me-3 small">Welcome, Professor <strong id="facultyUser">Alan</strong></span>
+                <button onclick="logout()" class="btn btn-sm btn-outline-danger px-3">Sign Out</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <div class="container py-4">
+        <!-- Header -->
+        <div class="dashboard-header animate-fade-in">
+            <h1 class="fw-bold mb-1">Faculty Workstation</h1>
+            <p class="mb-0 text-white-50">Record daily attendance and upload student academic grades</p>
+        </div>
+
+        <div id="statusMessage" class="alert d-none" role="alert"></div>
+
+        <div class="row">
+            <!-- Left Panel: My Workload & Roster View -->
+            <div class="col-lg-5">
+                <div class="dashboard-card mb-4">
+                    <div class="card-header-custom">My Assigned Sections</div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush" id="workloadList">
+                            <div class="p-3 text-secondary text-center">Loading teaching schedule...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card d-none" id="rosterCard">
+                    <div class="card-header-custom d-flex justify-content-between align-items-center">
+                        <span>Class Roster</span>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="hideRoster()">Close</button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Roll Number</th>
+                                        <th>Student Name</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="rosterTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Dynamic Action Cards (Attendance Grid / Marks Form) -->
+            <div class="col-lg-7">
+                <!-- Select a section prompt -->
+                <div id="actionPrompt" class="dashboard-card p-5 text-center text-secondary">
+                    <h3>Select an assigned section from your schedule to take attendance or upload marks.</h3>
+                </div>
+
+                <!-- Record Attendance Card -->
+                <div class="dashboard-card d-none" id="attendanceCard">
+                    <div class="card-header-custom d-flex justify-content-between align-items-center">
+                        <span id="attendanceSectionTitle">Daily Attendance Log</span>
+                        <input type="date" id="attendanceDate" class="form-control form-control-sm w-30" required>
+                    </div>
+                    <div class="card-body p-4">
+                        <form id="attendanceForm">
+                            <input type="hidden" id="attendanceAssignmentId">
+                            <div class="table-responsive mb-3">
+                                <table class="table align-middle">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Roll No</th>
+                                            <th>Name</th>
+                                            <th class="text-center">Attended (Present)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="attendanceTableBody"></tbody>
+                                </table>
+                            </div>
+                            <button type="submit" class="btn w-100 gradient-btn">Save Daily Attendance Grid</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Upload Marks Card -->
+                <div class="dashboard-card d-none" id="marksCard">
+                    <div class="card-header-custom" id="marksSectionTitle">Record Marks</div>
+                    <div class="card-body p-4">
+                        <form id="marksForm">
+                            <input type="hidden" id="marksAssignmentId">
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-secondary">Student</label>
+                                <select class="form-select" id="marksStudentSelect" required></select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-secondary">Assessment Name</label>
+                                <input type="text" class="form-control" id="marksAssessment" required placeholder="e.g. Midterm, Final, Quiz 1">
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label small fw-semibold text-secondary">Marks Obtained</label>
+                                    <input type="number" class="form-control" id="marksObtained" required min="0" step="0.5">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label small fw-semibold text-secondary">Max Marks Possible</label>
+                                    <input type="number" class="form-control" id="marksMax" required min="1" step="0.5">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label small fw-semibold text-secondary">Weightage %</label>
+                                    <input type="number" class="form-control" id="marksWeight" required min="0" max="100">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn w-100 gradient-btn">Upload Assessment Mark</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        // Set Username
+        document.getElementById("facultyUser").innerText = localStorage.getItem("username") || "Faculty";
+
+        // Set default date input value to today
+        document.getElementById("attendanceDate").value = new Date().toISOString().substring(0, 10);
+
+        let activeRosterStudents = [];
+
+        function showMessage(msg, isError = false) {
+            const container = document.getElementById("statusMessage");
+            container.innerText = msg;
+            container.className = `alert alert-${isError ? 'danger' : 'success'} mt-3`;
+            container.classList.remove("d-none");
+            setTimeout(() => container.classList.add("d-none"), 4000);
+        }
+
+        // Hide dynamic cards
+        function hideRoster() {
+            document.getElementById("rosterCard").classList.add("d-none");
+        }
+
+        // Fetch teaching sections
+        async function loadFacultyWorkload() {
+            try {
+                const response = await apiFetch("/faculty/assignments");
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    const list = result.data;
+                    const container = document.getElementById("workloadList");
+                    
+                    if (list.length === 0) {
+                        container.innerHTML = `<div class="p-3 text-secondary text-center">No classes assigned to you this semester.</div>`;
+                        return;
+                    }
+
+                    container.innerHTML = list.map(a => `
+                        <div class="list-group-item p-3">
+                            <h5 class="fw-bold mb-1">${a.courseCode} - ${a.courseTitle}</h5>
+                            <p class="text-secondary small mb-2">${a.semester} (${a.academicYear})</p>
+                            <div class="d-flex gap-2">
+                                <button onclick="viewRoster(${a.id}, '${a.courseCode}')" class="btn btn-xs btn-outline-secondary py-1 px-2 small">Roster</button>
+                                <button onclick="openAttendanceGrid(${a.id}, '${a.courseCode}')" class="btn btn-xs btn-outline-primary py-1 px-2 small">Take Attendance</button>
+                                <button onclick="openMarksForm(${a.id}, '${a.courseCode}')" class="btn btn-xs btn-outline-success py-1 px-2 small">Upload Marks</button>
+                            </div>
+                        </div>
+                    `).join("");
+                }
+            } catch(e) { console.error("Error loading workload", e); }
+        }
+
+        // Fetch roster students helper
+        async function fetchRoster(courseAssignmentId) {
+            try {
+                const response = await apiFetch(`/faculty/rosters/${courseAssignmentId}`);
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    return result.data.students;
+                }
+            } catch(e) { console.error("Error fetching class roster", e); }
+            return [];
+        }
+
+        // View Roster list
+        async function viewRoster(courseAssignmentId, courseCode) {
+            activeRosterStudents = await fetchRoster(courseAssignmentId);
+            const tbody = document.getElementById("rosterTableBody");
+            tbody.innerHTML = activeRosterStudents.map(s => `
+                <tr>
+                    <td class="font-monospace small">${s.rollNumber}</td>
+                    <td>${s.firstName} ${s.lastName}</td>
+                </tr>
+            `).join("");
+            document.getElementById("rosterCard").classList.remove("d-none");
+        }
+
+        // Open Attendance entry panel
+        async function openAttendanceGrid(courseAssignmentId, courseCode) {
+            document.getElementById("actionPrompt").classList.add("d-none");
+            document.getElementById("marksCard").classList.add("d-none");
+            
+            activeRosterStudents = await fetchRoster(courseAssignmentId);
+            document.getElementById("attendanceSectionTitle").innerText = `${courseCode} Daily Attendance Log`;
+            document.getElementById("attendanceAssignmentId").value = courseAssignmentId;
+
+            const tbody = document.getElementById("attendanceTableBody");
+            tbody.innerHTML = activeRosterStudents.map(s => `
+                <tr>
+                    <td class="font-monospace small">${s.rollNumber}</td>
+                    <td>${s.firstName} ${s.lastName}</td>
+                    <td class="text-center">
+                        <input class="form-check-input student-attendance-check" type="checkbox" data-student-id="${s.studentId}" checked>
+                    </td>
+                </tr>
+            `).join("");
+
+            document.getElementById("attendanceCard").classList.remove("d-none");
+        }
+
+        // Open Marks entry panel
+        async function openMarksForm(courseAssignmentId, courseCode) {
+            document.getElementById("actionPrompt").classList.add("d-none");
+            document.getElementById("attendanceCard").classList.add("d-none");
+
+            activeRosterStudents = await fetchRoster(courseAssignmentId);
+            document.getElementById("marksSectionTitle").innerText = `${courseCode} - Record Marks`;
+            document.getElementById("marksAssignmentId").value = courseAssignmentId;
+
+            // Fill student dropdown
+            const select = document.getElementById("marksStudentSelect");
+            select.innerHTML = activeRosterStudents.map(s => `<option value="${s.enrollmentId}">${s.firstName} ${s.lastName} (${s.rollNumber})</option>`).join("");
+
+            document.getElementById("marksCard").classList.remove("d-none");
+        }
+
+        // Submit Attendance
+        document.getElementById("attendanceForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const courseAssignmentId = parseInt(document.getElementById("attendanceAssignmentId").value);
+            const date = document.getElementById("attendanceDate").value;
+
+            const rows = document.querySelectorAll(".student-attendance-check");
+            const records = [];
+            rows.forEach(checkbox => {
+                records.push({
+                    studentId: parseInt(checkbox.getAttribute("data-student-id")),
+                    status: checkbox.checked ? "PRESENT" : "ABSENT"
+                });
+            });
+
+            const body = {
+                courseAssignmentId,
+                date,
+                records
+            };
+
+            try {
+                const res = await apiFetch("/faculty/attendance", { method: "POST", body: JSON.stringify(body) });
+                if (res.ok) {
+                    showMessage("Daily Attendance saved successfully!");
+                    document.getElementById("attendanceCard").classList.add("d-none");
+                    document.getElementById("actionPrompt").classList.remove("d-none");
+                } else {
+                    const err = await res.json();
+                    showMessage(err.message || "Failed to save attendance logs", true);
+                }
+            } catch(e) { showMessage("Server integration error", true); }
+        });
+
+        // Submit Marks
+        document.getElementById("marksForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const body = {
+                enrollmentId: parseInt(document.getElementById("marksStudentSelect").value),
+                assessmentName: document.getElementById("marksAssessment").value,
+                marksObtained: parseFloat(document.getElementById("marksObtained").value),
+                maxMarks: parseFloat(document.getElementById("marksMax").value),
+                weightagePercentage: parseFloat(document.getElementById("marksWeight").value)
+            };
+
+            try {
+                const res = await apiFetch("/faculty/marks", { method: "POST", body: JSON.stringify(body) });
+                if (res.ok) {
+                    showMessage("Student marks uploaded successfully!");
+                    document.getElementById("marksObtained").value = "";
+                    document.getElementById("marksMax").value = "";
+                    document.getElementById("marksWeight").value = "";
+                } else {
+                    const err = await res.json();
+                    showMessage(err.message || "Failed to upload marks", true);
+                }
+            } catch(e) { showMessage("Server integration error", true); }
+        });
+
+        // Startup Trigger
+        window.addEventListener("DOMContentLoaded", loadFacultyWorkload);
+    </script>
+</body>
+</html>

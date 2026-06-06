@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - AMS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <script>
+        // Role check
+        if (localStorage.getItem("userRole") !== "ADMIN") {
+            window.location.href = "index.html";
+        }
+    </script>
+</head>
+<body class="bg-light">
+
+    <!-- Top Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4 py-3 shadow">
+        <div class="container-fluid">
+            <span class="navbar-brand fw-bold fs-4" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">AMS Admin</span>
+            <div class="d-flex align-items-center">
+                <span class="text-light me-3 small">Welcome, <strong id="adminUser">Admin</strong></span>
+                <button onclick="logout()" class="btn btn-sm btn-outline-danger px-3">Sign Out</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <div class="container py-4">
+        <!-- Header -->
+        <div class="dashboard-header animate-fade-in">
+            <h1 class="fw-bold mb-1">Administrative Center</h1>
+            <p class="mb-0 text-white-50">Manage students, faculty members, departments, and course assignments</p>
+        </div>
+
+        <!-- Dashboard Navigation Tabs -->
+        <ul class="nav nav-pills mb-4 justify-content-center" id="adminTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="students-tab" data-bs-toggle="pill" data-bs-target="#students" type="button" role="tab">Students</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="faculty-tab" data-bs-toggle="pill" data-bs-target="#faculty" type="button" role="tab">Faculty</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="departments-tab" data-bs-toggle="pill" data-bs-target="#departments" type="button" role="tab">Departments</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="courses-tab" data-bs-toggle="pill" data-bs-target="#courses" type="button" role="tab">Courses & Assignments</button>
+            </li>
+        </ul>
+
+        <!-- Notification Alerts -->
+        <div id="statusMessage" class="alert d-none" role="alert"></div>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="adminTabsContent">
+            
+            <!-- Students Tab -->
+            <div class="tab-pane fade show active" id="students" role="tabpanel">
+                <div class="row">
+                    <!-- Left: Register Student -->
+                    <div class="col-lg-4">
+                        <div class="dashboard-card">
+                            <div class="card-header-custom">Register New Student</div>
+                            <div class="card-body p-4">
+                                <form id="studentRegisterForm">
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-secondary">Username</label>
+                                        <input type="text" class="form-control" id="stuUsername" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-secondary">Password</label>
+                                        <input type="password" class="form-control" id="stuPassword" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-secondary">Email</label>
+                                        <input type="email" class="form-control" id="stuEmail" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-secondary">First Name</label>
+                                        <input type="text" class="form-control" id="stuFirstName" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-secondary">Last Name</label>
+                                        <input type="text" class="form-control" id="stuLastName" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-secondary">Phone</label>
+                                        <input type="text" class="form-control" id="stuPhone">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-secondary">Date of Birth</label>
+                                        <input type="date" class="form-control" id="stuDob" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-secondary">Department</label>
+                                        <select class="form-select dept-select" id="stuDept" required></select>
+                                    </div>
+                                    <button type="submit" class="btn w-100 gradient-btn mt-2">Register Student</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Right: Student Directory -->
+                    <div class="col-lg-8">
+                        <div class="dashboard-card">
+                            <div class="card-header-custom d-flex justify-content-between align-items-center">
+                                <span>Student Directory</span>
+                                <input type="text" id="stuSearch" class="form-control form-control-sm w-50" placeholder="Search directory...">
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Roll No</th>
+                                                <th>Name</th>
+                                                <th>Email</th>
+                                                <th>Department</th>
+                                                <th>Status</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="studentTableBody"></tbody>
+                                    </table>
+                                </div>
+                                <div class="p-3 d-flex justify-content-between align-items-center" id="studentPagination"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Faculty Tab -->
+            <div class="tab-pane fade" id="faculty" role="tabpanel">
+                <div class="row">
+                    <!-- Left: Register Faculty -->
+                    <div class="col-lg-4">
+                        <div class="dashboard-card">
+                            <div class="card-header-custom">Register New Faculty</div>
+                            <div class="card-body p-4">
+                                <form id="facultyRegisterForm">
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-secondary">Username</label>
+                                        <input type="text" class="form-control" id="facUsername" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-secondary">Password</label>
+                                        <input type="password" class="form-control" id="facPassword" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-secondary">Email</label>
+                                        <input type="email" class="form-control" id="facEmail" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-secondary">First Name</label>
+                                        <input type="text" class="form-control" id="facFirstName" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-secondary">Last Name</label>
+                                        <input type="text" class="form-control" id="facLastName" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-secondary">Phone</label>
+                                        <input type="text" class="form-control" id="facPhone">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-secondary">Designation</label>
+                                        <input type="text" class="form-control" id="facDesignation" required placeholder="e.g. Professor">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-secondary">Department</label>
+                                        <select class="form-select dept-select" id="facDept" required></select>
+                                    </div>
+                                    <button type="submit" class="btn w-100 gradient-btn mt-2">Register Faculty</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Right: Faculty Directory -->
+                    <div class="col-lg-8">
+                        <div class="dashboard-card">
+                            <div class="card-header-custom d-flex justify-content-between align-items-center">
+                                <span>Faculty Directory</span>
+                                <input type="text" id="facSearch" class="form-control form-control-sm w-50" placeholder="Search directory...">
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Employee ID</th>
+                                                <th>Name</th>
+                                                <th>Designation</th>
+                                                <th>Department</th>
+                                                <th>Status</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="facultyTableBody"></tbody>
+                                    </table>
+                                </div>
+                                <div class="p-3 d-flex justify-content-between align-items-center" id="facultyPagination"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Departments Tab -->
+            <div class="tab-pane fade" id="departments" role="tabpanel">
+                <div class="row">
+                    <!-- Left: Create Department -->
+                    <div class="col-lg-4">
+                        <div class="dashboard-card">
+                            <div class="card-header-custom">Create Department</div>
+                            <div class="card-body p-4">
+                                <form id="departmentForm">
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-secondary">Department Code</label>
+                                        <input type="text" class="form-control" id="deptCode" required placeholder="e.g. CS">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-secondary">Department Name</label>
+                                        <input type="text" class="form-control" id="deptName" required placeholder="e.g. Computer Science">
+                                    </div>
+                                    <button type="submit" class="btn w-100 gradient-btn mt-2">Add Department</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Right: Departments List -->
+                    <div class="col-lg-8">
+                        <div class="dashboard-card">
+                            <div class="card-header-custom">Departments Directory</div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Code</th>
+                                                <th>Name</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="departmentTableBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Courses & Assignments Tab -->
+            <div class="tab-pane fade" id="courses" role="tabpanel">
+                <div class="row">
+                    <!-- Left: Register Course & Assignment Forms -->
+                    <div class="col-lg-4">
+                        <div class="dashboard-card mb-4">
+                            <div class="card-header-custom">Create Course</div>
+                            <div class="card-body p-4">
+                                <form id="courseForm">
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-secondary">Course Code</label>
+                                        <input type="text" class="form-control" id="courseCode" required placeholder="e.g. CS201">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-secondary">Course Title</label>
+                                        <input type="text" class="form-control" id="courseTitle" required placeholder="e.g. Data Structures">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-secondary">Credits</label>
+                                        <input type="number" class="form-control" id="courseCredits" required min="1" max="5" placeholder="1 to 5">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-secondary">Department</label>
+                                        <select class="form-select dept-select" id="courseDept" required></select>
+                                    </div>
+                                    <button type="submit" class="btn w-100 gradient-btn mt-2">Add Course</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-card">
+                            <div class="card-header-custom">Assign Course to Faculty</div>
+                            <div class="card-body p-4">
+                                <form id="assignCourseForm">
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-secondary">Course</label>
+                                        <select class="form-select" id="assignCourse" required></select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-secondary">Faculty Profile</label>
+                                        <select class="form-select" id="assignFaculty" required></select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-secondary">Semester</label>
+                                        <input type="text" class="form-control" id="assignSemester" required placeholder="e.g. Fall 2026">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-secondary">Academic Year</label>
+                                        <input type="text" class="form-control" id="assignYear" required placeholder="e.g. 2026-2027">
+                                    </div>
+                                    <button type="submit" class="btn w-100 gradient-btn mt-2">Assign Course</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Right: Courses catalog & Current Assignments List -->
+                    <div class="col-lg-8">
+                        <div class="dashboard-card mb-4">
+                            <div class="card-header-custom">Courses Catalog</div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Code</th>
+                                                <th>Title</th>
+                                                <th>Credits</th>
+                                                <th>Department</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="courseTableBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-card">
+                            <div class="card-header-custom">Course Assignments</div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Course</th>
+                                                <th>Faculty</th>
+                                                <th>Semester / Year</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="assignmentTableBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Bootstrap scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        // Set Username
+        document.getElementById("adminUser").innerText = localStorage.getItem("username") || "Admin";
+
+        // Global states for directories
+        let currentStuPage = 0;
+        let stuSearchVal = "";
+        let currentFacPage = 0;
+        let facSearchVal = "";
+        let globalDepts = [];
+
+        // Helper to show API status message
+        function showMessage(msg, isError = false) {
+            const container = document.getElementById("statusMessage");
+            container.innerText = msg;
+            container.className = `alert alert-${isError ? 'danger' : 'success'} mt-3`;
+            setTimeout(() => container.classList.add("d-none"), 4000);
+        }
+
+        // Dropdown filler helper
+        function populateDeptsSelect(depts) {
+            const dropdowns = document.querySelectorAll(".dept-select");
+            dropdowns.forEach(dropdown => {
+                dropdown.innerHTML = depts.map(d => `<option value="${d.id}">${d.name} (${d.code})</option>`).join("");
+            });
+        }
+
+        // --- Fetch & Load Routines ---
+
+        // Load Departments
+        async function loadDepartments() {
+            try {
+                const response = await apiFetch("/departments");
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    globalDepts = result.data;
+                    populateDeptsSelect(globalDepts);
+
+                    const tbody = document.getElementById("departmentTableBody");
+                    tbody.innerHTML = globalDepts.map(d => `
+                        <tr>
+                            <td>${d.id}</td>
+                            <td><span class="badge bg-secondary font-monospace">${d.code}</span></td>
+                            <td>${d.name}</td>
+                            <td>
+                                <button onclick="deleteDepartment(${d.id})" class="btn btn-sm btn-outline-danger">Delete</button>
+                            </td>
+                        </tr>
+                    `).join("");
+                }
+            } catch(e) { console.error("Error loading departments", e); }
+        }
+
+        // Load Students (with paging & filter)
+        async function loadStudents() {
+            try {
+                const response = await apiFetch(`/admin/students?page=${currentStuPage}&query=${stuSearchVal}`);
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    const page = result.data;
+                    const tbody = document.getElementById("studentTableBody");
+                    tbody.innerHTML = page.content.map(s => `
+                        <tr>
+                            <td class="font-monospace fw-semibold">${s.rollNumber}</td>
+                            <td>${s.firstName} ${s.lastName}</td>
+                            <td>${s.email}</td>
+                            <td>${s.departmentName}</td>
+                            <td>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" ${s.active ? 'checked' : ''} onchange="toggleStuStatus(${s.id}, this.checked)">
+                                </div>
+                            </td>
+                            <td>
+                                <button onclick="deleteStudent(${s.id})" class="btn btn-sm btn-outline-danger">Delete</button>
+                            </td>
+                        </tr>
+                    `).join("");
+
+                    renderStudentPagination(page);
+                }
+            } catch (e) { console.error("Error loading students", e); }
+        }
+
+        function renderStudentPagination(page) {
+            const container = document.getElementById("studentPagination");
+            container.innerHTML = `
+                <span class="small text-secondary">Showing Page ${page.number + 1} of ${page.totalPages}</span>
+                <div>
+                    <button class="btn btn-sm btn-outline-secondary me-1" ${page.first ? 'disabled' : ''} onclick="changeStuPage(${currentStuPage - 1})">Prev</button>
+                    <button class="btn btn-sm btn-outline-secondary" ${page.last ? 'disabled' : ''} onclick="changeStuPage(${currentStuPage + 1})">Next</button>
+                </div>
+            `;
+        }
+
+        function changeStuPage(pageNum) {
+            currentStuPage = pageNum;
+            loadStudents();
+        }
+
+        // Load Faculty
+        async function loadFaculty() {
+            try {
+                const response = await apiFetch(`/admin/faculty?page=${currentFacPage}&query=${facSearchVal}`);
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    const page = result.data;
+                    const tbody = document.getElementById("facultyTableBody");
+                    tbody.innerHTML = page.content.map(f => `
+                        <tr>
+                            <td class="font-monospace fw-semibold">${f.employeeId}</td>
+                            <td>${f.firstName} ${f.lastName}</td>
+                            <td>${f.designation}</td>
+                            <td>${f.departmentName}</td>
+                            <td>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" ${f.active ? 'checked' : ''} onchange="toggleFacStatus(${f.id}, this.checked)">
+                                </div>
+                            </td>
+                            <td>
+                                <button onclick="deleteFaculty(${f.id})" class="btn btn-sm btn-outline-danger">Delete</button>
+                            </td>
+                        </tr>
+                    `).join("");
+
+                    // Update Faculty dropdown in Section Assignments
+                    const assignFaculty = document.getElementById("assignFaculty");
+                    assignFaculty.innerHTML = page.content.map(f => `<option value="${f.id}">${f.firstName} ${f.lastName} (${f.employeeId})</option>`).join("");
+
+                    renderFacultyPagination(page);
+                }
+            } catch (e) { console.error("Error loading faculty", e); }
+        }
+
+        function renderFacultyPagination(page) {
+            const container = document.getElementById("facultyPagination");
+            container.innerHTML = `
+                <span class="small text-secondary">Showing Page ${page.number + 1} of ${page.totalPages}</span>
+                <div>
+                    <button class="btn btn-sm btn-outline-secondary me-1" ${page.first ? 'disabled' : ''} onclick="changeFacPage(${currentFacPage - 1})">Prev</button>
+                    <button class="btn btn-sm btn-outline-secondary" ${page.last ? 'disabled' : ''} onclick="changeFacPage(${currentFacPage + 1})">Next</button>
+                </div>
+            `;
+        }
+
+        function changeFacPage(pageNum) {
+            currentFacPage = pageNum;
+            loadFaculty();
+        }
+
+        // Load Courses
+        async function loadCourses() {
+            try {
+                const response = await apiFetch("/courses");
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    const courses = result.data;
+                    const tbody = document.getElementById("courseTableBody");
+                    tbody.innerHTML = courses.map(c => `
+                        <tr>
+                            <td class="font-monospace fw-semibold">${c.code}</td>
+                            <td>${c.title}</td>
+                            <td>${c.credits}</td>
+                            <td>${c.departmentName}</td>
+                            <td>
+                                <button onclick="deleteCourse(${c.id})" class="btn btn-sm btn-outline-danger">Delete</button>
+                            </td>
+                        </tr>
+                    `).join("");
+
+                    // Update Course dropdown in Section Assignments
+                    const assignCourse = document.getElementById("assignCourse");
+                    assignCourse.innerHTML = courses.map(c => `<option value="${c.id}">${c.title} (${c.code})</option>`).join("");
+                }
+            } catch(e) { console.error("Error loading courses", e); }
+        }
+
+        // Load Course Assignments
+        async function loadAssignments() {
+            try {
+                const response = await apiFetch("/admin/course-assignments");
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    const list = result.data;
+                    const tbody = document.getElementById("assignmentTableBody");
+                    tbody.innerHTML = list.map(a => `
+                        <tr>
+                            <td><strong>${a.courseCode}</strong> - ${a.courseTitle}</td>
+                            <td>${a.facultyFullName}</td>
+                            <td>${a.semester} <span class="text-secondary small">(${a.academicYear})</span></td>
+                            <td>
+                                <button onclick="deleteAssignment(${a.id})" class="btn btn-sm btn-outline-danger">Delete</button>
+                            </td>
+                        </tr>
+                    `).join("");
+                }
+            } catch(e) { console.error("Error loading assignments", e); }
+        }
+
+        // --- Active / Status / Delete Handlers ---
+
+        async function toggleStuStatus(id, active) {
+            try {
+                const res = await apiFetch(`/admin/students/${id}/status?active=${active}`, { method: "PUT" });
+                if (res.ok) showMessage(`Student status updated successfully`);
+            } catch(e) { showMessage("Error updating student status", true); }
+        }
+
+        async function toggleFacStatus(id, active) {
+            try {
+                const res = await apiFetch(`/admin/faculty/${id}/status?active=${active}`, { method: "PUT" });
+                if (res.ok) showMessage(`Faculty status updated successfully`);
+            } catch(e) { showMessage("Error updating faculty status", true); }
+        }
+
+        async function deleteStudent(id) {
+            if (!confirm("Are you sure you want to delete this student?")) return;
+            try {
+                const res = await apiFetch(`/admin/students/${id}`, { method: "DELETE" });
+                if (res.ok) {
+                    showMessage("Student deleted successfully");
+                    loadStudents();
+                }
+            } catch(e) { showMessage("Error deleting student", true); }
+        }
+
+        async function deleteFaculty(id) {
+            if (!confirm("Are you sure you want to delete this faculty member?")) return;
+            try {
+                const res = await apiFetch(`/admin/faculty/${id}`, { method: "DELETE" });
+                if (res.ok) {
+                    showMessage("Faculty deleted successfully");
+                    loadFaculty();
+                }
+            } catch(e) { showMessage("Error deleting faculty", true); }
+        }
+
+        async function deleteDepartment(id) {
+            if (!confirm("Are you sure you want to delete this department?")) return;
+            try {
+                const res = await apiFetch(`/admin/departments/${id}`, { method: "DELETE" });
+                if (res.ok) {
+                    showMessage("Department deleted successfully");
+                    loadDepartments();
+                }
+            } catch(e) { showMessage("Error deleting department", true); }
+        }
+
+        async function deleteCourse(id) {
+            if (!confirm("Are you sure you want to delete this course?")) return;
+            try {
+                const res = await apiFetch(`/admin/courses/${id}`, { method: "DELETE" });
+                if (res.ok) {
+                    showMessage("Course deleted successfully");
+                    loadCourses();
+                }
+            } catch(e) { showMessage("Error deleting course", true); }
+        }
+
+        async function deleteAssignment(id) {
+            if (!confirm("Are you sure you want to delete this assignment?")) return;
+            try {
+                const res = await apiFetch(`/admin/course-assignments/${id}`, { method: "DELETE" });
+                if (res.ok) {
+                    showMessage("Assignment deleted successfully");
+                    loadAssignments();
+                }
+            } catch(e) { showMessage("Error deleting assignment", true); }
+        }
+
+        // --- Form Submit Listeners ---
+
+        // Register Student
+        document.getElementById("studentRegisterForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const body = {
+                username: document.getElementById("stuUsername").value,
+                password: document.getElementById("stuPassword").value,
+                email: document.getElementById("stuEmail").value,
+                firstName: document.getElementById("stuFirstName").value,
+                lastName: document.getElementById("stuLastName").value,
+                phone: document.getElementById("stuPhone").value,
+                dateOfBirth: document.getElementById("stuDob").value,
+                departmentId: parseInt(document.getElementById("stuDept").value)
+            };
+
+            try {
+                const res = await apiFetch("/admin/students", { method: "POST", body: JSON.stringify(body) });
+                if (res.ok) {
+                    showMessage("Student registered successfully");
+                    document.getElementById("studentRegisterForm").reset();
+                    loadStudents();
+                } else {
+                    const err = await res.json();
+                    showMessage(err.message || "Failed to register student", true);
+                }
+            } catch(e) { showMessage("Server integration error", true); }
+        });
+
+        // Register Faculty
+        document.getElementById("facultyRegisterForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const body = {
+                username: document.getElementById("facUsername").value,
+                password: document.getElementById("facPassword").value,
+                email: document.getElementById("facEmail").value,
+                firstName: document.getElementById("facFirstName").value,
+                lastName: document.getElementById("facLastName").value,
+                phone: document.getElementById("facPhone").value,
+                designation: document.getElementById("facDesignation").value,
+                departmentId: parseInt(document.getElementById("facDept").value)
+            };
+
+            try {
+                const res = await apiFetch("/admin/faculty", { method: "POST", body: JSON.stringify(body) });
+                if (res.ok) {
+                    showMessage("Faculty registered successfully");
+                    document.getElementById("facultyRegisterForm").reset();
+                    loadFaculty();
+                } else {
+                    const err = await res.json();
+                    showMessage(err.message || "Failed to register faculty", true);
+                }
+            } catch(e) { showMessage("Server integration error", true); }
+        });
+
+        // Add Department
+        document.getElementById("departmentForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const body = {
+                code: document.getElementById("deptCode").value,
+                name: document.getElementById("deptName").value
+            };
+
+            try {
+                const res = await apiFetch("/admin/departments", { method: "POST", body: JSON.stringify(body) });
+                if (res.ok) {
+                    showMessage("Department created successfully");
+                    document.getElementById("departmentForm").reset();
+                    loadDepartments();
+                } else {
+                    const err = await res.json();
+                    showMessage(err.message || "Failed to create department", true);
+                }
+            } catch(e) { showMessage("Server integration error", true); }
+        });
+
+        // Add Course
+        document.getElementById("courseForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const body = {
+                code: document.getElementById("courseCode").value,
+                title: document.getElementById("courseTitle").value,
+                credits: parseInt(document.getElementById("courseCredits").value),
+                departmentId: parseInt(document.getElementById("courseDept").value)
+            };
+
+            try {
+                const res = await apiFetch("/admin/courses", { method: "POST", body: JSON.stringify(body) });
+                if (res.ok) {
+                    showMessage("Course created successfully");
+                    document.getElementById("courseForm").reset();
+                    loadCourses();
+                } else {
+                    const err = await res.json();
+                    showMessage(err.message || "Failed to create course", true);
+                }
+            } catch(e) { showMessage("Server integration error", true); }
+        });
+
+        // Assign Course
+        document.getElementById("assignCourseForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const body = {
+                courseId: parseInt(document.getElementById("assignCourse").value),
+                facultyId: parseInt(document.getElementById("assignFaculty").value),
+                semester: document.getElementById("assignSemester").value,
+                academicYear: document.getElementById("assignYear").value
+            };
+
+            try {
+                const res = await apiFetch("/admin/course-assignments", { method: "POST", body: JSON.stringify(body) });
+                if (res.ok) {
+                    showMessage("Course assigned to faculty successfully");
+                    document.getElementById("assignCourseForm").reset();
+                    loadAssignments();
+                } else {
+                    const err = await res.json();
+                    showMessage(err.message || "Failed to assign course", true);
+                }
+            } catch(e) { showMessage("Server integration error", true); }
+        });
+
+        // --- Search Listeners ---
+        document.getElementById("stuSearch").addEventListener("input", (e) => {
+            stuSearchVal = e.target.value;
+            currentStuPage = 0;
+            loadStudents();
+        });
+
+        document.getElementById("facSearch").addEventListener("input", (e) => {
+            facSearchVal = e.target.value;
+            currentFacPage = 0;
+            loadFaculty();
+        });
+
+        // --- Startup Trigger ---
+        window.addEventListener("DOMContentLoaded", () => {
+            loadDepartments();
+            loadStudents();
+            loadFaculty();
+            loadCourses();
+            loadAssignments();
+        });
+    </script>
+</body>
+</html>

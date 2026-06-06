@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - AMS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <script>
+        // Role check
+        if (localStorage.getItem("userRole") !== "STUDENT") {
+            window.location.href = "index.html";
+        }
+    </script>
+</head>
+<body class="bg-light">
+
+    <!-- Top Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4 py-3 shadow">
+        <div class="container-fluid">
+            <span class="navbar-brand fw-bold fs-4" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-fill-color: transparent; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">AMS Student</span>
+            <div class="d-flex align-items-center">
+                <span class="text-light me-3 small">Welcome, <strong id="studentUser">Student</strong></span>
+                <button onclick="logout()" class="btn btn-sm btn-outline-danger px-3">Sign Out</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <div class="container py-4">
+        <!-- Header -->
+        <div class="dashboard-header animate-fade-in">
+            <h1 class="fw-bold mb-1">Academic Dashboard</h1>
+            <p class="mb-0 text-white-50">View your profile, enroll in course sections, inspect attendance, and access transcripts</p>
+        </div>
+
+        <!-- Dashboard Navigation Tabs -->
+        <ul class="nav nav-pills mb-4 justify-content-center" id="studentTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="profile-tab" data-bs-toggle="pill" data-bs-target="#profile" type="button" role="tab">My Profile</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="enrollment-tab" data-bs-toggle="pill" data-bs-target="#enrollment" type="button" role="tab">Course Self-Enrollment</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="attendance-tab" data-bs-toggle="pill" data-bs-target="#attendance" type="button" role="tab">Attendance Records</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="transcript-tab" data-bs-toggle="pill" data-bs-target="#transcript" type="button" role="tab">Academic Report Card</button>
+            </li>
+        </ul>
+
+        <!-- Notification Alerts -->
+        <div id="statusMessage" class="alert d-none" role="alert"></div>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="studentTabsContent">
+
+            <!-- Profile Tab -->
+            <div class="tab-pane fade show active" id="profile" role="tabpanel">
+                <div class="row">
+                    <div class="col-lg-4 mb-4">
+                        <!-- Profile Brief Card -->
+                        <div class="dashboard-card text-center p-4">
+                            <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px; font-size: 2rem; font-weight: bold; background: var(--primary-gradient) !important;" id="profileInitials">
+                                --
+                            </div>
+                            <h4 class="fw-bold mb-1" id="profileFullName">Loading Name...</h4>
+                            <p class="text-secondary small mb-3" id="profileRollNumber">STU--------</p>
+                            <span class="badge" id="profileStatusBadge">Checking status...</span>
+                        </div>
+                    </div>
+                    <div class="col-lg-8">
+                        <!-- Detailed Info Card -->
+                        <div class="dashboard-card p-4">
+                            <h5 class="fw-bold mb-4 border-bottom pb-2">Academic & Contact Information</h5>
+                            <div class="row g-4">
+                                <div class="col-sm-6">
+                                    <label class="text-secondary small fw-semibold d-block">Username</label>
+                                    <span class="fw-semibold text-dark fs-5" id="profileUsername">loading...</span>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="text-secondary small fw-semibold d-block">Email Address</label>
+                                    <span class="fw-semibold text-dark fs-5" id="profileEmail">loading...</span>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="text-secondary small fw-semibold d-block">Phone Number</label>
+                                    <span class="fw-semibold text-dark fs-5" id="profilePhone">loading...</span>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="text-secondary small fw-semibold d-block">Date of Birth</label>
+                                    <span class="fw-semibold text-dark fs-5" id="profileDob">loading...</span>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="text-secondary small fw-semibold d-block">Department</label>
+                                    <span class="fw-semibold text-dark fs-5" id="profileDepartment">loading...</span>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="text-secondary small fw-semibold d-block">Enrollment Date</label>
+                                    <span class="fw-semibold text-dark fs-5" id="profileEnrollDate">loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enrollment Tab -->
+            <div class="tab-pane fade" id="enrollment" role="tabpanel">
+                <div class="dashboard-card">
+                    <div class="card-header-custom d-flex justify-content-between align-items-center">
+                        <span>Course Catalog & Section Assignments</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Course Details</th>
+                                        <th>Instructor</th>
+                                        <th>Term / Academic Year</th>
+                                        <th class="text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="enrollmentTableBody">
+                                    <tr>
+                                        <td colspan="4" class="p-4 text-center text-secondary">Loading available courses...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance Tab -->
+            <div class="tab-pane fade" id="attendance" role="tabpanel">
+                <div class="dashboard-card">
+                    <div class="card-header-custom">Attendance Trackers</div>
+                    <div class="card-body">
+                        <div class="row" id="attendanceContainer">
+                            <div class="p-3 text-secondary text-center">Loading attendance metrics...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transcript Tab -->
+            <div class="tab-pane fade" id="transcript" role="tabpanel">
+                <div class="row">
+                    <!-- Cumulative Card -->
+                    <div class="col-lg-4 mb-4">
+                        <div class="dashboard-card text-center p-4">
+                            <h5 class="fw-bold text-secondary mb-3">Cumulative GPA</h5>
+                            <div class="d-inline-flex align-items-center justify-content-center rounded-circle border border-primary p-4 mb-3" style="width: 120px; height: 120px; border-width: 4px !important; border-color: #6366f1 !important;">
+                                <span class="fs-2 fw-bold text-primary" id="gpaMetric">0.00</span>
+                            </div>
+                            <p class="text-muted small mb-0">Weighted GPA on a 4.00 scale</p>
+                        </div>
+                    </div>
+
+                    <!-- Grades Table -->
+                    <div class="col-lg-8">
+                        <div class="dashboard-card">
+                            <div class="card-header-custom">Academic Transcript</div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Course Code</th>
+                                                <th>Course Title</th>
+                                                <th class="text-center">Credits</th>
+                                                <th class="text-center">Total Weighted Score</th>
+                                                <th class="text-center">Letter Grade</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="transcriptTableBody">
+                                            <tr>
+                                                <td colspan="5" class="p-4 text-center text-secondary">Loading academic records...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Bootstrap scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        // Set Username
+        document.getElementById("studentUser").innerText = localStorage.getItem("username") || "Student";
+
+        // Global state of student enrollments to prevent duplicates
+        let enrolledCourseCodes = new Set();
+
+        // Helper to show API status message
+        function showMessage(msg, isError = false) {
+            const container = document.getElementById("statusMessage");
+            container.innerText = msg;
+            container.className = `alert alert-${isError ? 'danger' : 'success'} mt-3`;
+            container.classList.remove("d-none");
+            setTimeout(() => container.classList.add("d-none"), 4000);
+        }
+
+        // --- Fetch & Load Routines ---
+
+        // Load Student Profile
+        async function loadProfile() {
+            try {
+                const response = await apiFetch("/students/profile");
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    const s = result.data;
+                    document.getElementById("profileFullName").innerText = `${s.firstName} ${s.lastName}`;
+                    document.getElementById("profileRollNumber").innerText = s.rollNumber;
+                    
+                    const badge = document.getElementById("profileStatusBadge");
+                    if (s.isActive) {
+                        badge.innerText = "Active Account";
+                        badge.className = "badge badge-safe-custom";
+                    } else {
+                        badge.innerText = "Inactive Account";
+                        badge.className = "badge badge-warning-custom";
+                    }
+
+                    // Initials
+                    const initials = ((s.firstName ? s.firstName[0] : "") + (s.lastName ? s.lastName[0] : "")).toUpperCase();
+                    document.getElementById("profileInitials").innerText = initials || "ST";
+
+                    // Details fields
+                    document.getElementById("profileUsername").innerText = s.username || "N/A";
+                    document.getElementById("profileEmail").innerText = s.email || "N/A";
+                    document.getElementById("profilePhone").innerText = s.phone || "N/A";
+                    document.getElementById("profileDob").innerText = s.dateOfBirth || "N/A";
+                    document.getElementById("profileDepartment").innerText = s.departmentName || "N/A";
+                    document.getElementById("profileEnrollDate").innerText = s.enrollmentDate || "N/A";
+                }
+            } catch(e) { console.error("Error loading profile", e); }
+        }
+
+        // Load Attendance Stats & Record enrolled courses
+        async function loadAttendance() {
+            try {
+                const response = await apiFetch("/students/attendance");
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    const stats = result.data;
+                    const container = document.getElementById("attendanceContainer");
+                    
+                    // Clear and save codes
+                    enrolledCourseCodes.clear();
+
+                    if (stats.length === 0) {
+                        container.innerHTML = `<div class="p-4 text-secondary text-center">You are not enrolled in any courses for the current semester.</div>`;
+                        return;
+                    }
+
+                    container.innerHTML = stats.map(course => {
+                        enrolledCourseCodes.add(course.courseCode);
+                        
+                        const isWarning = course.percentage < 75.0;
+                        const badgeClass = isWarning ? "badge-warning-custom" : "badge-safe-custom";
+                        const progressBarClass = isWarning ? "bg-danger" : "bg-success";
+                        const labelText = isWarning ? "Below Limit (Warning)" : "Safe";
+
+                        return `
+                            <div class="col-md-6 mb-4">
+                                <div class="card p-3 border-0 shadow-sm" style="border-radius: 12px; background: white;">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <h6 class="fw-bold mb-0 text-primary">${course.courseCode}</h6>
+                                            <small class="text-secondary fw-semibold">${course.courseTitle}</small>
+                                        </div>
+                                        <span class="badge ${badgeClass}">${labelText}</span>
+                                    </div>
+                                    <div class="my-3">
+                                        <div class="d-flex justify-content-between small text-secondary mb-1">
+                                            <span>Attendance Percentage</span>
+                                            <span class="fw-bold">${course.percentage}%</span>
+                                        </div>
+                                        <div class="progress" style="height: 10px;">
+                                            <div class="progress-bar ${progressBarClass}" role="progressbar" style="width: ${course.percentage}%" aria-valuenow="${course.percentage}" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                    </div>
+                                    <div class="text-secondary small fw-semibold">
+                                        Lectures Logged: <span class="text-dark">${course.lecturesAttended}</span> / <span class="text-dark">${course.lecturesConducted}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join("");
+                }
+            } catch(e) { console.error("Error loading attendance", e); }
+        }
+
+        // Load Course Catalog and assignments
+        async function loadEnrollmentCatalog() {
+            try {
+                // Ensure attendance is loaded first to populate enrolledCourseCodes
+                await loadAttendance();
+
+                const response = await apiFetch("/admin/course-assignments");
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    const catalog = result.data;
+                    const tbody = document.getElementById("enrollmentTableBody");
+
+                    if (catalog.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-secondary">No course sections are currently offered.</td></tr>`;
+                        return;
+                    }
+
+                    tbody.innerHTML = catalog.map(section => {
+                        const isEnrolled = enrolledCourseCodes.has(section.courseCode);
+                        const buttonHtml = isEnrolled 
+                            ? `<span class="badge badge-safe-custom font-monospace">ENROLLED</span>`
+                            : `<button onclick="enroll(${section.id}, '${section.courseCode}')" class="btn btn-sm btn-primary px-3 gradient-btn">Enroll</button>`;
+
+                        return `
+                            <tr>
+                                <td>
+                                    <div class="fw-bold text-dark">${section.courseCode} - ${section.courseTitle}</div>
+                                    <span class="text-secondary small">Credits: (Variable/Exposed)</span>
+                                </td>
+                                <td>${section.facultyFullName}</td>
+                                <td>
+                                    <span class="badge bg-secondary font-monospace mb-1">${section.semester}</span>
+                                    <div class="text-secondary small">${section.academicYear}</div>
+                                </td>
+                                <td class="text-center">
+                                    ${buttonHtml}
+                                </td>
+                            </tr>
+                        `;
+                    }).join("");
+                } else {
+                    const tbody = document.getElementById("enrollmentTableBody");
+                    tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-danger">Failed to fetch available course sections. Check role authority setup.</td></tr>`;
+                }
+            } catch(e) { console.error("Error loading enrollment catalog", e); }
+        }
+
+        // Enroll function
+        async function enroll(courseAssignmentId, courseCode) {
+            if (!confirm(`Are you sure you want to self-enroll in ${courseCode}?`)) return;
+            try {
+                const response = await apiFetch("/students/enroll", {
+                    method: "POST",
+                    body: JSON.stringify({ courseAssignmentId: parseInt(courseAssignmentId) })
+                });
+                
+                if (response.ok) {
+                    showMessage(`Successfully enrolled in ${courseCode}!`);
+                    // Refresh tabs
+                    await loadEnrollmentCatalog();
+                    await loadTranscript();
+                } else {
+                    const err = await response.json();
+                    showMessage(err.message || "Failed to enroll.", true);
+                }
+            } catch(e) { showMessage("Server integration error.", true); }
+        }
+
+        // Load Transcript / Report Card
+        async function loadTranscript() {
+            try {
+                const response = await apiFetch("/students/report-card");
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    const r = result.data;
+                    
+                    // CGPA Metric
+                    document.getElementById("gpaMetric").innerText = r.cgpa.toFixed(2);
+
+                    // Table rows
+                    const tbody = document.getElementById("transcriptTableBody");
+                    if (r.courses.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-secondary">No grade records found.</td></tr>`;
+                        return;
+                    }
+
+                    tbody.innerHTML = r.courses.map(c => `
+                        <tr>
+                            <td class="font-monospace fw-semibold">${c.courseCode}</td>
+                            <td>${c.courseTitle}</td>
+                            <td class="text-center font-monospace">${c.credits}</td>
+                            <td class="text-center font-monospace fw-bold text-indigo">${c.totalScore.toFixed(2)}%</td>
+                            <td class="text-center">
+                                <span class="badge ${c.grade === 'F' ? 'bg-danger' : 'bg-success'} font-monospace px-3 py-2">${c.grade}</span>
+                            </td>
+                        </tr>
+                    `).join("");
+                }
+            } catch(e) { console.error("Error loading transcript", e); }
+        }
+
+        // --- Startup Trigger ---
+        window.addEventListener("DOMContentLoaded", async () => {
+            await loadProfile();
+            await loadEnrollmentCatalog(); // This internally calls loadAttendance()
+            await loadTranscript();
+        });
+    </script>
+</body>
+</html>
