@@ -47,7 +47,7 @@ The system is seeded with the following default users:
 
 | Role      | Username      | Password             |
 | --------- | ------------- | -------------------- |
-| Admin     | `admin`       | `admin`              |
+| Admin     | `admin`       | `Password123`        |
 | Faculty   | `teacher_foo` | `TeacherPassword123` |
 | Student   | `john_doe`    | `StudentPassword123` |
 

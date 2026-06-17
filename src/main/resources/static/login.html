@@ -12,12 +12,20 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background: linear-gradient(135deg, #1e1b4b 0%, #311042 100%);
+            padding: 2rem;
+            position: relative;
+        }
+        .theme-toggle-absolute {
+            position: absolute;
+            top: 20px;
+            right: 20px;
         }
     </style>
 </head>
 <body>
+    <script src="js/app.js"></script>
     <div class="login-container">
+        <button onclick="toggleTheme()" class="theme-toggle theme-toggle-absolute" title="Toggle Theme">🌓</button>
         <div class="login-card animate-fade-in">
             <div class="text-center mb-4">
                 <h2 class="fw-bold" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">AMS Portal</h2>
@@ -40,7 +48,7 @@
         </div>
     </div>
 
-    <script src="js/app.js"></script>
+
     <script>
         // Check if already logged in
         if (localStorage.getItem("accessToken")) {
@@ -56,7 +64,7 @@
             errorAlert.classList.add("d-none");
 
             try {
-                const response = await fetch("http://localhost:8080/api/auth/login", {
+                const response = await fetch(window.location.origin + "/api/auth/login", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ username: usernameInput, password: passwordInput })

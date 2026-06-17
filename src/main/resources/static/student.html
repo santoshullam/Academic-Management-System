@@ -14,13 +14,14 @@
     </script>
 </head>
 <body class="bg-light">
-
-    <!-- Top Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4 py-3 shadow">
+    <!-- Ensure initTheme runs immediately to prevent flash -->
+    <script>if (typeof initTheme === 'function') initTheme();</script>
+    <nav class="navbar navbar-expand-lg navbar-custom px-4 py-3 shadow-sm sticky-top">
         <div class="container-fluid">
-            <span class="navbar-brand fw-bold fs-4" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-fill-color: transparent; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">AMS Student</span>
-            <div class="d-flex align-items-center">
-                <span class="text-light me-3 small">Welcome, <strong id="studentUser">Student</strong></span>
+            <span class="navbar-brand fs-4" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">AMS Student</span>
+            <div class="d-flex align-items-center gap-3">
+                <button onclick="toggleTheme()" class="theme-toggle" title="Toggle Theme">🌓</button>
+                <span class="nav-text me-3 small">Welcome, <strong id="studentUser">Student</strong></span>
                 <button onclick="logout()" class="btn btn-sm btn-outline-danger px-3">Sign Out</button>
             </div>
         </div>

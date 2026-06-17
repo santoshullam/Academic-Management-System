@@ -56,6 +56,13 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(HttpStatus.UNAUTHORIZED.value(), "Invalid username or password."));
     }
 
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDataIntegrityViolationException(org.springframework.dao.DataIntegrityViolationException ex) {
+        log.warn("Data integrity violation: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error(HttpStatus.CONFLICT.value(), "A user with this unique information already exists. Please choose a different username, email, or details."));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleAllExceptions(Exception ex) {
         log.error("Internal Server Error: ", ex);

@@ -1,4 +1,28 @@
-const BASE_URL = "http://localhost:8080/api";
+// Automatically use the current host for API requests, making it cloud-ready
+const BASE_URL = window.location.origin + "/api";
+
+// --- Theme Management ---
+function initTheme() {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark" || (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+        document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+        document.documentElement.removeAttribute("data-theme");
+    }
+}
+initTheme();
+
+function toggleTheme() {
+    if (document.documentElement.getAttribute("data-theme") === "dark") {
+        document.documentElement.removeAttribute("data-theme");
+        localStorage.setItem("theme", "light");
+    } else {
+        document.documentElement.setAttribute("data-theme", "dark");
+        localStorage.setItem("theme", "dark");
+    }
+}
+// ------------------------
+
 
 // Auto route check: if on a protected page, verify we have a token
 const currentPath = window.location.pathname;
