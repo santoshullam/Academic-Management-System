@@ -168,6 +168,9 @@ public class StudentServiceImpl implements StudentService {
         StudentProfile studentProfile = studentProfileRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found with ID: " + id));
         
+        // Delete related enrollments to prevent foreign key constraint violation
+        enrollmentRepository.deleteByStudentId(id);
+
         // Deleting studentProfile cascades to delete User credentials since cascade=CascadeType.ALL is configured.
         studentProfileRepository.delete(studentProfile);
     }
